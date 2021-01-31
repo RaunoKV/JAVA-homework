@@ -2,18 +2,24 @@ package com.homework;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.homework.exceptions.CountryResolverException;
 import com.homework.models.Client;
 import com.homework.models.Loan;
+import com.homework.models.enums.LoanStatus;
 import com.homework.repositories.LoanRepo;
 import com.homework.requests.ApplyForLoan;
 import com.homework.services.CountryResolver;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -27,6 +33,16 @@ public class LoanController {
 
     @Autowired
     private CountryResolver countryResolver;
+
+    @GetMapping("loans")
+    public Iterable<Loan> getAllLoans(){
+        return loanRepo.findByStatus(LoanStatus.APPROVED);
+    }
+
+    @GetMapping("loan/{clientUUID}")
+    public List<Loan> getClientsLoans(@PathVariable String clientUUID){
+        return loanRepo.findByClientIdAndStatusEquals(UUID.fromString(clientUUID), LoanStatus.APPROVED);
+    }
 
     @PostMapping("/loan")
     @ResponseBody

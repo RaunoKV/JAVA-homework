@@ -6,6 +6,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +21,7 @@ public class Country {
     private String name;
 
     @OneToMany(mappedBy = "country")
+    @JsonBackReference
     private List<Loan> loans = new ArrayList<>();
 
     public String getCode() {

@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -16,6 +15,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.homework.models.enums.LoanStatus;
 
 @Entity
 @Table(indexes = @Index(columnList = "appliedAt"))
@@ -27,16 +27,18 @@ public class Loan {
 
     private BigDecimal amount;
     private Date term;
+    private LoanStatus status = LoanStatus.APPROVED; // TODO:
 
     private Date appliedAt = new Date();
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "clientId")
     @JsonManagedReference
     private Client client;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "countryId")
+    @JsonManagedReference
     private Country country;
 
     public UUID getId() {
@@ -81,6 +83,14 @@ public class Loan {
 
     public void setCountry(Country country) {
         this.country = country;
+    }
+
+    public LoanStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(LoanStatus status) {
+        this.status = status;
     }
 
 }
