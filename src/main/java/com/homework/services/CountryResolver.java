@@ -38,8 +38,7 @@ public class CountryResolver {
             HttpResponse<String> response = HttpClient.newHttpClient().send(request,
                     HttpResponse.BodyHandlers.ofString());
 
-            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-            };
+            TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
             Map<String, Object> resp = mapper.readValue(response.body(), typeRef);
 
             Country resolvedCountry = new Country();

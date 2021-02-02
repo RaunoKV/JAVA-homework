@@ -1,8 +1,6 @@
 package com.homework.models;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
@@ -15,8 +13,6 @@ import java.util.List;
 public class Country {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
     private String code;
     private String name;
 
@@ -46,10 +42,6 @@ public class Country {
 
     public void setLoans(List<Loan> loans) {
         this.loans = loans;
-    }
-
-    public int getId() {
-        return id;
     }
 
 }

@@ -1,5 +1,7 @@
 package com.homework;
 
+import com.homework.models.Client;
+import com.homework.models.Loan;
 import com.homework.repositories.ClientRepo;
 import com.homework.repositories.LoanRepo;
 
@@ -14,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,25 +32,54 @@ class LoanApplicationTests {
 	private ClientRepo clientRepo;
 
 	@BeforeEach
-	public void deleteAllBeforeTests() throws Exception {
+	public void deleteAllBeforeTests() {
 		loanRepo.deleteAll();
 		clientRepo.deleteAll();
 	}
 
 	@Test
 	void applyForLoan() throws Exception {
-		var anyLoansExists = loanRepo.findAll().iterator().hasNext();
+		var anyLoansExists = loanRepo.count() > 0;
 		assertFalse(anyLoansExists);
 
 		mockMvc.perform(post("/loan").contentType(MediaType.APPLICATION_JSON)
-				.content(getRequestJson(100, "Frodo", "Baggins", "54321", 1643659623882L))).andExpect(status().isOk())
+				.content(createRequestJson(100, "Frodo", "Baggins", "54321", 1643659623882L)))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.amount").value(100))
+				.andExpect(jsonPath("$.client.name").value("Frodo"))
+				.andExpect(jsonPath("$.status").value("APPROVED"))
 				.andReturn();
 
-		anyLoansExists = loanRepo.findAll().iterator().hasNext();
+		anyLoansExists = loanRepo.count() > 0;
 		assertTrue(anyLoansExists);
 	}
 
-	private String getRequestJson(long amount, String name, String surname, String personalId, long term) {
+	@Test
+	void getAllApprovedLoans() {
+		// TODO assert won't see loans in denied status
+
+		// TODO assert will see approved loans
+	}
+
+	@Test
+	void findLoanByClient() throws Exception {
+		var client = new Client();
+		var loan = new Loan();
+		client.assignLoan(loan);
+		loanRepo.save(loan);
+		assertNotNull(client.getId());
+
+		var loans = loanRepo.findByClientId(client.getId());
+
+		mockMvc.perform(get("/loan/" + client.getId().toString()).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(1)))
+				.andReturn();
+
+		assertEquals(1, loans.size());
+	}
+
+	private String createRequestJson(long amount, String name, String surname, String personalId, long term) {
 		return String.format(
 				"{\"loanAmount\": %d, \"name\":\"%s\", \"surname\":\"%s\", \"personalId\": \"%s\", \"term\": %d}",
 				amount, name, surname, personalId, term);

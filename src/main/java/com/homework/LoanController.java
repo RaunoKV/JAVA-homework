@@ -48,7 +48,8 @@ public class LoanController {
     @ResponseBody
     public Loan createProduct(@Valid @RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {
         try {
-            var loan = requestToModel(loanApplication, request.getRemoteAddr());
+            var ip = "134.201.250.155"; // request.getRemoteAddr(); // when running locally "127.0.0.1" won't be resolved
+            var loan = requestToModel(loanApplication, ip);
             // validate
             // TODO:
 
@@ -57,6 +58,8 @@ public class LoanController {
 
             return loan;
         } catch (CountryResolverException e) {
+            return null; // TODO
+        }catch (Exception e) {
             return null; // TODO
         }
     }
