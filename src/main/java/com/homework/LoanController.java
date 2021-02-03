@@ -12,6 +12,7 @@ import com.homework.exceptions.CountryResolverException;
 import com.homework.models.Client;
 import com.homework.models.Loan;
 import com.homework.models.enums.LoanStatus;
+import com.homework.repositories.ClientRepo;
 import com.homework.repositories.LoanRepo;
 import com.homework.requests.ApplyForLoan;
 import com.homework.services.CountryResolver;
@@ -27,6 +28,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RestController
 @Validated
 public class LoanController {
+
+    @Autowired
+    private ClientRepo clientRepo;
 
     @Autowired
     private LoanRepo loanRepo;
@@ -46,40 +50,42 @@ public class LoanController {
 
     @PostMapping("/loan")
     @ResponseBody
-    public Loan createProduct(@Valid @RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {
+    public Client createProduct(@Valid @RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {
         try {
             var ip = "134.201.250.155"; // request.getRemoteAddr(); // when running locally "127.0.0.1" won't be resolved
-            var loan = requestToModel(loanApplication, ip);
+            var client = requestToModel(loanApplication, ip);
             // validate
             // TODO:
 
             // save
-            loanRepo.save(loan);
+            clientRepo.save(client);
 
-            return loan;
+            return client;
         } catch (CountryResolverException e) {
+            e.printStackTrace();
             return null; // TODO
         }catch (Exception e) {
+            e.printStackTrace();
             return null; // TODO
         }
     }
 
     // TODO: location
-    private Loan requestToModel(ApplyForLoan req, String ip) throws CountryResolverException {
+    private Client requestToModel(ApplyForLoan req, String ip) throws CountryResolverException {
         var country = countryResolver.resolveCountry(ip);
 
         var loan = new Loan();
         loan.setAmount(req.getLoanAmount());
         loan.setTerm(req.getTerm());
         loan.setCountry(country);
-
-        var client = new Client();
+        
+        var client = clientRepo.findByPersonalIdOrNew(req.getPersonalId());
         client.setName(req.getName());
         client.setSurname(req.getSurname());
         client.setPersonalId(req.getPersonalId());
         client.assignLoan(loan);
 
-        return loan;
+        return client;
     }
 
 }

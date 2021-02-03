@@ -5,8 +5,9 @@ import com.homework.models.enums.LoanStatus;
 
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.repository.PagingAndSortingRepository;
-public interface LoanRepo extends PagingAndSortingRepository<Loan, UUID> {
+
+import org.springframework.data.repository.CrudRepository;
+public interface LoanRepo extends CrudRepository<Loan, UUID> {
 
 	List<Loan> findByStatus(LoanStatus status);
 

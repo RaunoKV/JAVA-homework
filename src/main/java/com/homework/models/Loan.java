@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.homework.models.enums.LoanStatus;
 
@@ -27,13 +28,13 @@ public class Loan {
 
     private BigDecimal amount;
     private Date term;
-    private LoanStatus status = LoanStatus.APPROVED; // TODO:
+    private LoanStatus status = LoanStatus.APPROVED;
 
     private Date appliedAt = new Date();
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "clientId")
-    @JsonManagedReference
+    @JsonBackReference
     private Client client;
 
     @ManyToOne(cascade = CascadeType.ALL)
