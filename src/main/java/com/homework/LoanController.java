@@ -9,15 +9,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.homework.exceptions.CountryResolverException;
-import com.homework.models.Client;
 import com.homework.models.Loan;
 import com.homework.models.enums.LoanStatus;
 import com.homework.repositories.ClientRepo;
 import com.homework.repositories.LoanRepo;
 import com.homework.requests.ApplyForLoan;
 import com.homework.services.CountryResolver;
+import com.homework.services.validator.LoanValidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +38,9 @@ public class LoanController {
     private LoanRepo loanRepo;
 
     @Autowired
+    private LoanValidator validator;
+
+    @Autowired
     private CountryResolver countryResolver;
 
     @GetMapping("loans")
@@ -50,28 +55,33 @@ public class LoanController {
 
     @PostMapping("/loan")
     @ResponseBody
-    public Client createProduct(@Valid @RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {
+    public ResponseEntity createProduct(@RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {        
         try {
             var ip = "134.201.250.155"; // request.getRemoteAddr(); // when running locally "127.0.0.1" won't be resolved
-            var client = requestToModel(loanApplication, ip);
+            var loan = requestToModel(loanApplication, ip);
             // validate
-            // TODO:
+            validator.isValid(loan);
 
             // save
-            clientRepo.save(client);
+            clientRepo.save(loan.getClient());
 
-            return client;
+            return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(loan);
         } catch (CountryResolverException e) {
-            e.printStackTrace();
-            return null; // TODO
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("Couldn't resolve country of origin");
         }catch (Exception e) {
             e.printStackTrace();
-            return null; // TODO
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(e.getMessage()); // TODO
         }
     }
 
     // TODO: location
-    private Client requestToModel(ApplyForLoan req, String ip) throws CountryResolverException {
+    private Loan requestToModel(ApplyForLoan req, String ip) throws CountryResolverException {
         var country = countryResolver.resolveCountry(ip);
 
         var loan = new Loan();
@@ -85,7 +95,7 @@ public class LoanController {
         client.setPersonalId(req.getPersonalId());
         client.assignLoan(loan);
 
-        return client;
+        return loan;
     }
 
 }

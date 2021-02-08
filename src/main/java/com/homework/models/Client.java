@@ -13,7 +13,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.homework.models.enums.ClientStatus;
 
 @Entity
@@ -25,13 +25,14 @@ public class Client {
     private UUID id;
 
     private String name;
+
     private String surname;
     
     private String personalId;
     private ClientStatus status = ClientStatus.ACTIVE;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonBackReference
     private List<Loan> loans = new ArrayList<>();
 
     public UUID getId() {

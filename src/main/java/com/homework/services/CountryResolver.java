@@ -11,9 +11,11 @@ import java.util.Map;
 
 import com.homework.exceptions.CountryResolverException;
 import com.homework.models.Country;
+import com.homework.repositories.CountryRepo;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Configurable;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -26,6 +28,9 @@ public class CountryResolver {
 
     @Value("${api.notASecret}")
     private String accessToken;
+
+    @Autowired
+    private CountryRepo countryRepo;
 
     private ObjectMapper mapper = new ObjectMapper();
 
@@ -40,14 +45,19 @@ public class CountryResolver {
 
             TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {};
             Map<String, Object> resp = mapper.readValue(response.body(), typeRef);
+        
 
-            Country resolvedCountry = new Country();
-            resolvedCountry.setCode((String) resp.get("country_code"));
-            resolvedCountry.setName((String) resp.get("country_name"));
-
-            return resolvedCountry;
+            return createCountry((String) resp.get("country_code"), (String) resp.get("country_name"));
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new CountryResolverException("Couldn't resolve country", e);
         }
+    }
+
+    private Country createCountry(String code, String name) {
+        Country resolvedCountry = countryRepo.findByIdOrNew(code);
+        resolvedCountry.setCode(code);
+        resolvedCountry.setName(name);
+
+        return resolvedCountry;
     }
 }

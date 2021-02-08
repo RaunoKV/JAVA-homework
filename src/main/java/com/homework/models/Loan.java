@@ -14,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.homework.models.enums.LoanStatus;
 
@@ -34,13 +33,20 @@ public class Loan {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "clientId")
-    @JsonBackReference
+    @JsonManagedReference
     private Client client;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "countryId")
     @JsonManagedReference
     private Country country;
+
+
+    public Loan(Client client) {
+        client.assignLoan(this);
+    }    
+
+    public Loan() {}
 
     public UUID getId() {
         return id;

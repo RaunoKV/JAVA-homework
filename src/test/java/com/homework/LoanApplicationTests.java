@@ -43,11 +43,10 @@ class LoanApplicationTests {
 		assertFalse(anyLoansExists);
 
 		mockMvc.perform(post("/loan").contentType(MediaType.APPLICATION_JSON)
-				.content(createRequestJson(100, "Frodo", "Baggins", "54321", 1643659623882L)))
-				.andExpect(status().isOk())
+				.content(createRequestJson(100, "Frodo", "Baggins", "54321", "01-01-2022 00:00:00")))
+				.andExpect(status().isCreated())
 				.andExpect(jsonPath("$.amount").value(100))
 				.andExpect(jsonPath("$.client.name").value("Frodo"))
-				.andExpect(jsonPath("$.status").value("APPROVED"))
 				.andReturn();
 
 		anyLoansExists = loanRepo.count() > 0;
@@ -64,8 +63,8 @@ class LoanApplicationTests {
 	@Test
 	void findLoanByClient() throws Exception {
 		var client = new Client();
-		var loan = new Loan();
-		client.assignLoan(loan);
+		var loan = new Loan(client);
+		
 		loanRepo.save(loan);
 		assertNotNull(client.getId());
 
@@ -79,9 +78,9 @@ class LoanApplicationTests {
 		assertEquals(1, loans.size());
 	}
 
-	private String createRequestJson(long amount, String name, String surname, String personalId, long term) {
+	private String createRequestJson(long amount, String name, String surname, String personalId, String term) {
 		return String.format(
-				"{\"loanAmount\": %d, \"name\":\"%s\", \"surname\":\"%s\", \"personalId\": \"%s\", \"term\": %d}",
+				"{\"loanAmount\": %d, \"name\":\"%s\", \"surname\":\"%s\", \"personalId\": \"%s\", \"term\": \"%s\"}",
 				amount, name, surname, personalId, term);
 	}
 
