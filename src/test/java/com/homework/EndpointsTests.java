@@ -2,6 +2,7 @@ package com.homework;
 
 import com.homework.models.Client;
 import com.homework.models.Loan;
+import com.homework.models.enums.LoanStatus;
 import com.homework.repositories.ClientRepo;
 import com.homework.repositories.LoanRepo;
 
@@ -20,7 +21,7 @@ import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class LoanApplicationTests {
+class EndpointsTests {
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -39,25 +40,33 @@ class LoanApplicationTests {
 
 	@Test
 	void applyForLoan() throws Exception {
-		var anyLoansExists = loanRepo.count() > 0;
-		assertFalse(anyLoansExists);
-
 		mockMvc.perform(post("/loan").contentType(MediaType.APPLICATION_JSON)
-				.content(createRequestJson(100, "Frodo", "Baggins", "54321", "01-01-2022 00:00:00")))
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.amount").value(100))
-				.andExpect(jsonPath("$.client.name").value("Frodo"))
-				.andReturn();
+			.content(createRequestJson(100, "Frodo", "Baggins", "54321", "01-01-2022 00:00:00")))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.amount").value(100))
+			.andExpect(jsonPath("$.client.name").value("Frodo"))
+			.andReturn();
 
-		anyLoansExists = loanRepo.count() > 0;
-		assertTrue(anyLoansExists);
+		assertTrue(loanRepo.count() == 1);
 	}
 
 	@Test
-	void getAllApprovedLoans() {
-		// TODO assert won't see loans in denied status
+	void getAllApprovedLoans() throws Exception {
+		// add 2 loans
+		var client = new Client();
+		new Loan(client);
 
-		// TODO assert will see approved loans
+		var deniedLoan = new Loan(client);
+		deniedLoan.setStatus(LoanStatus.DENIED);
+		clientRepo.save(client);
+
+		assertEquals(2, loanRepo.count());
+		
+		// only see one approved loan
+		mockMvc.perform(get("/loans").contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$", hasSize(1)))
+			.andReturn();
 	}
 
 	@Test
