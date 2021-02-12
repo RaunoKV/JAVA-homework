@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
 import com.homework.exceptions.CountryResolverException;
 import com.homework.models.Loan;
@@ -55,12 +54,13 @@ public class LoanController {
 
     @PostMapping("/loan")
     @ResponseBody
-    public ResponseEntity createProduct(@RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {        
+    public ResponseEntity applyForLoan(@RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {        
         try {
-            var ip = "134.201.250.155"; // request.getRemoteAddr(); // when running locally "127.0.0.1" won't be resolved
+            var ip = request.getRemoteAddr(); // "134.201.250.155"; // when running locally "127.0.0.1" won't be resolved
             var loan = requestToModel(loanApplication, ip);
+
             // validate
-            validator.isValid(loan);
+            validator.throwIfInvalid(loan);
 
             // save
             clientRepo.save(loan.getClient());
@@ -80,7 +80,6 @@ public class LoanController {
         }
     }
 
-    // TODO: location
     private Loan requestToModel(ApplyForLoan req, String ip) throws CountryResolverException {
         var country = countryResolver.resolveCountry(ip);
 

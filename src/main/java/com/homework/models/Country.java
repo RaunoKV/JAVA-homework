@@ -20,6 +20,12 @@ public class Country {
     @JsonBackReference
     private List<Loan> loans = new ArrayList<>();
 
+    public Country(String code) {
+        this.code = code;
+    }
+
+    public Country() {}
+
     public String getCode() {
         return code;
     }

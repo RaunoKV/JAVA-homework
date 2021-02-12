@@ -5,9 +5,11 @@ import com.homework.models.Loan;
 import com.homework.models.enums.LoanStatus;
 import com.homework.repositories.ClientRepo;
 import com.homework.repositories.LoanRepo;
+import com.homework.requests.ApplyForLoan;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,8 +17,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import javax.servlet.http.HttpServletRequest;
+
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest
@@ -25,6 +34,9 @@ class EndpointsTests {
 
 	@Autowired
 	private MockMvc mockMvc;
+
+	@Autowired
+	private LoanController loanController;
 
 	@Autowired
 	private LoanRepo loanRepo;
@@ -40,12 +52,15 @@ class EndpointsTests {
 
 	@Test
 	void applyForLoan() throws Exception {
-		mockMvc.perform(post("/loan").contentType(MediaType.APPLICATION_JSON)
-			.content(createRequestJson(100, "Frodo", "Baggins", "54321", "01-01-2022 00:00:00")))
-			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.amount").value(100))
-			.andExpect(jsonPath("$.client.name").value("Frodo"))
-			.andReturn();
+		
+		var loanApplication = new ApplyForLoan();
+		loanApplication.setLoanAmount(new BigDecimal(100));
+		loanApplication.setName("firstname");
+		loanApplication.setSurname("surname");
+		loanApplication.setPersonalId("personalId");
+		loanApplication.setTerm(new Date());
+
+		loanController.applyForLoan(loanApplication, mockRequest());
 
 		assertTrue(loanRepo.count() == 1);
 	}
@@ -87,10 +102,13 @@ class EndpointsTests {
 		assertEquals(1, loans.size());
 	}
 
-	private String createRequestJson(long amount, String name, String surname, String personalId, String term) {
-		return String.format(
-				"{\"loanAmount\": %d, \"name\":\"%s\", \"surname\":\"%s\", \"personalId\": \"%s\", \"term\": \"%s\"}",
-				amount, name, surname, personalId, term);
+	private HttpServletRequest mockRequest() {
+		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+		var exampleIp = "134.201.250.155";
+		when(request.getRemoteAddr()).thenReturn(exampleIp);
+
+		return request;
 	}
 
 }

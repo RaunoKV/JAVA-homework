@@ -3,25 +3,21 @@ package com.homework.requests;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class ApplyForLoan {
 
-    // @NotNull(message = "Please provide loanAmount")
+
     private BigDecimal loanAmount;
 
-    // @NotNull(message = "Please provide term")
+    @JsonFormat
+      (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private Date term;
 
-    // @NotEmpty(message = "Please provide name")
     private String name;
 
-    // @NotNull
-    // @NotEmpty(message = "Please provide surname")
     private String surname;
 
-    // @NotEmpty(message = "Please provide personalId")
     private String personalId;
 
     public BigDecimal getLoanAmount() {
