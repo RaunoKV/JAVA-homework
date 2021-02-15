@@ -9,22 +9,19 @@ import com.homework.requests.ApplyForLoan;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static org.hamcrest.Matchers.*;
 
@@ -52,7 +49,7 @@ class EndpointsTests {
 
 	@Test
 	void applyForLoan() throws Exception {
-		
+
 		var loanApplication = new ApplyForLoan();
 		loanApplication.setLoanAmount(new BigDecimal(100));
 		loanApplication.setName("firstname");
@@ -60,7 +57,11 @@ class EndpointsTests {
 		loanApplication.setPersonalId("personalId");
 		loanApplication.setTerm(new Date());
 
-		loanController.applyForLoan(loanApplication, mockRequest());
+		ReflectionTestUtils.setField(loanController, "ipOverwrite", "87.119.186.141");
+
+		loanController.applyForLoan(loanApplication, null);
+
+		assertEquals("EE", loanRepo.findAll().iterator().next().getCountry().getCode());
 
 		assertTrue(loanRepo.count() == 1);
 	}
@@ -76,39 +77,26 @@ class EndpointsTests {
 		clientRepo.save(client);
 
 		assertEquals(2, loanRepo.count());
-		
+
 		// only see one approved loan
-		mockMvc.perform(get("/loans").contentType(MediaType.APPLICATION_JSON))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$", hasSize(1)))
-			.andReturn();
+		mockMvc.perform(get("/loans").contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(1))).andReturn();
 	}
 
 	@Test
 	void findLoanByClient() throws Exception {
 		var client = new Client();
 		var loan = new Loan(client);
-		
+
 		loanRepo.save(loan);
 		assertNotNull(client.getId());
 
 		var loans = loanRepo.findByClientId(client.getId());
 
 		mockMvc.perform(get("/loan/" + client.getId().toString()).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$", hasSize(1)))
-				.andReturn();
+				.andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1))).andReturn();
 
 		assertEquals(1, loans.size());
-	}
-
-	private HttpServletRequest mockRequest() {
-		HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-
-		var exampleIp = "134.201.250.155";
-		when(request.getRemoteAddr()).thenReturn(exampleIp);
-
-		return request;
 	}
 
 }

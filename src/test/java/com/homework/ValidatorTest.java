@@ -22,10 +22,10 @@ public class ValidatorTest {
     private static final int LOANS_LIMIT = 10;
 
     @Autowired
-	private ClientRepo clientRepo;
+    private ClientRepo clientRepo;
 
     @Autowired
-	private LoanRepo loanRepo;
+    private LoanRepo loanRepo;
 
     @Autowired
     private LoanValidator validator;
@@ -35,16 +35,19 @@ public class ValidatorTest {
         var client = new Client();
         client.setStatus(ClientStatus.BLACKLISTED);
 
-		var loan = new Loan(client);
-        
-        assertThrows(InvalidLoanException.class, () -> {validator.throwIfInvalid(loan);});
+        var loan = new Loan(client);
+
+        assertThrows(InvalidLoanException.class, () -> {
+            validator.throwIfInvalid(loan);
+        });
     }
 
     @Test
     void tooManyLoansFromCountryShouldBeRejected() throws InvalidLoanException {
-        var country = new Country("ET");
-        
+        var country = new Country("EE");
         var client = new Client();
+
+        // Fill loans up to limit, validator gives no exception
         for (int i = 0; i < LOANS_LIMIT; i++) {
             var loan = new Loan(client);
             loan.setCountry(country);
@@ -52,12 +55,14 @@ public class ValidatorTest {
             validator.throwIfInvalid(loan);
         }
         clientRepo.save(client);
-        
-        assertEquals(10, loanRepo.count());
 
+        assertEquals(LOANS_LIMIT, loanRepo.count());
+
+        // Exceed limit, expect exception
         var loan = new Loan(new Client());
         loan.setCountry(country);
-        assertThrows(InvalidLoanException.class, () -> {validator.throwIfInvalid(loan);});
+        assertThrows(InvalidLoanException.class, () -> {
+            validator.throwIfInvalid(loan);
+        });
     }
-    
 }

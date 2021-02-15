@@ -17,8 +17,10 @@ import com.homework.services.CountryResolver;
 import com.homework.services.validator.LoanValidator;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -42,6 +44,9 @@ public class LoanController {
     @Autowired
     private CountryResolver countryResolver;
 
+    @Value("${localDev.mockIp:}")
+    private String ipOverwrite;
+
     @GetMapping("loans")
     public Iterable<Loan> getAllLoans(){
         return loanRepo.findByStatus(LoanStatus.APPROVED);
@@ -56,8 +61,7 @@ public class LoanController {
     @ResponseBody
     public ResponseEntity applyForLoan(@RequestBody ApplyForLoan loanApplication, HttpServletRequest request) {        
         try {
-            var ip = request.getRemoteAddr(); // "134.201.250.155"; // when running locally "127.0.0.1" won't be resolved
-            var loan = requestToModel(loanApplication, ip);
+            var loan = requestToModel(loanApplication, getIpOrOverwritten(request));
 
             // validate
             validator.throwIfInvalid(loan);
@@ -73,10 +77,9 @@ public class LoanController {
                 .status(HttpStatus.BAD_REQUEST)
                 .body("Couldn't resolve country of origin");
         }catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(e.getMessage()); // TODO
+                .body(e.getMessage());
         }
     }
 
@@ -95,6 +98,10 @@ public class LoanController {
         client.assignLoan(loan);
 
         return loan;
+    }
+
+    private String getIpOrOverwritten(HttpServletRequest request) {
+        return StringUtils.hasText(ipOverwrite) ? ipOverwrite : request.getRemoteAddr();
     }
 
 }

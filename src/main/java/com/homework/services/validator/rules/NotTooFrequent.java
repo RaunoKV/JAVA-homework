@@ -17,17 +17,17 @@ public class NotTooFrequent implements IValidationRule {
     public NotTooFrequent(CountryRepo countryRepo) {
         this.countryRepo = countryRepo;
     }
-    
 
     @Override
     public void validate(Loan loan) throws InvalidLoanException {
         long count = countryRepo.countByCodeAndLoansAppliedAtAfter(loan.getCountry().getCode(), findStartFromDate());
 
-        if(count >= MAX_REQUESTS){
-            throw new InvalidLoanException("Too many requests fom the given country");
+        if (count >= MAX_REQUESTS) {
+            throw new InvalidLoanException(
+                    String.format("Too many requests for the given country - %s", loan.getCountry().getCode()));
         }
     }
-    
+
     private Date findStartFromDate() {
         final Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -TIMEFRAME_IN_DAYS);
