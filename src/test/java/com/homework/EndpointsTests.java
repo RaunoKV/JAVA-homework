@@ -48,7 +48,7 @@ class EndpointsTests {
 	}
 
 	@Test
-	void applyForLoan() throws Exception {
+	void applyForLoanWithEstonianIP() throws Exception {
 
 		var loanApplication = new ApplyForLoan();
 		loanApplication.setLoanAmount(new BigDecimal(100));

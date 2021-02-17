@@ -20,11 +20,13 @@ public class NotTooFrequent implements IValidationRule {
 
     @Override
     public void validate(Loan loan) throws InvalidLoanException {
-        long count = countryRepo.countByCodeAndLoansAppliedAtAfter(loan.getCountry().getCode(), findStartFromDate());
+        String countryCode = loan.getCountry().getCode();
+
+        long count = countryRepo.countByCodeAndLoansAppliedAtAfter(countryCode, findStartFromDate());
 
         if (count >= MAX_REQUESTS) {
             throw new InvalidLoanException(
-                    String.format("Too many requests for the given country - %s", loan.getCountry().getCode()));
+                    String.format("Too many requests for the given country - %s", countryCode));
         }
     }
 
